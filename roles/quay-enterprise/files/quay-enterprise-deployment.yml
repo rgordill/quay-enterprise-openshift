@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  namespace: quay-enterprise
+  name: quay-enterprise-app
+  labels:
+    quay-enterprise-component: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      quay-enterprise-component: app
+  template:
+    metadata:
+      namespace: quay-enterprise
+      labels:
+        quay-enterprise-component: app
+    spec:
+      volumes:
+      - name: configvolume
+        persistentVolumeClaim:
+          claimName: quay-enterprise-config
+      - name: datastorage
+        persistentVolumeClaim:
+          claimName: quay-datastorage
+      containers:
+      - name: quay-enterprise-app
+        image: quay.io/coreos/quay:v2.9.1
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+        - name: configvolume
+          mountPath: /conf/stack
+        - name: datastorage
+          mountPath: /datastorage          
+      imagePullSecrets:
+        - name: coreos-pull-secret

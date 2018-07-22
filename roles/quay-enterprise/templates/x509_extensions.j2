@@ -1,0 +1,22 @@
+[ custom_extensions ]
+{% if is_ca is defined and is_ca == true %}
+basicConstraints        = critical, CA:TRUE
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always, issuer:always
+keyUsage                = critical, cRLSign, digitalSignature, keyCertSign
+{% else %}
+basicConstraints        = critical, CA:FALSE
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always, issuer:always
+keyUsage                = critical, nonRepudiation, digitalSignature, keyEncipherment, keyAgreement 
+extendedKeyUsage        = critical, serverAuth
+{% endif %}
+
+{% if subject_alt_name is defined %}
+subjectAltName      = @alternate_names
+
+[ alternate_names ]
+{% for item in subject_alt_name %}
+DNS.{{loop.index}}      = "{{ item }}" 
+{% endfor %}
+{% endif %}

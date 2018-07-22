@@ -1,0 +1,123 @@
+---
+# tasks file for Quay Enterprise
+
+# Create Project
+- name: Create Quay Enterprise project
+  openshift_raw:
+    api_version: v1
+    kind: Project
+    name: quay-enterprise
+    state: present
+
+
+- name: Add SCC anyuid to default account
+  shell: "oc adm policy add-scc-to-user anyuid -z default -n quay-enterprise"
+
+# # Create Objects
+# - name: Create Quay postgresql service instance
+#   k8s_raw:
+#     namespace: quay-enterprise
+#     src: "{{ role_path }}/files/quay-enterprise-postgresql.yml"
+
+# Create Objects
+- name: Create Quay postgresql objects
+  openshift_raw:
+    src: "{{ role_path }}/files/{{ item }}"
+  with_items:
+  - quay-enterprise-postgresql-volume.yml
+  - quay-enterprise-postgresql.yml
+  - quay-enterprise-postgresql-service.yml
+
+- name: Create Quay Enterprise Redis Deployment
+  openshift_raw:
+    src: "{{ role_path }}/files/{{ item }}"
+  with_items:
+  - quay-enterprise-redis.yml
+  - quay-enterprise-redis-service.yml
+
+- name: Create Quay Enterprise Secret
+  openshift_raw:
+    src: "{{ role_path }}/files/quay-enterprise-config-secret.yml"
+ 
+- name: Create Quay Enterprise Service
+  openshift_raw:
+    src: "{{ role_path }}/files/quay-enterprise-service-clusterip.yml"
+#  register: quay_svc
+  
+- name: Create Quay Enterprise Route
+  openshift_raw:
+    src: "{{ role_path }}/files/quay-enterprise-route.yml"
+  register: quay_route
+
+- name: Create Quay Enterprise Volumes
+  openshift_raw:
+    src: "{{ role_path }}/files/{{ item }}"
+  with_items:
+#  - "quay-enterprise-config-volume.yml"
+  - "quay-enterprise-datastore-volume.yml"
+
+- name: Create Quay Enterprise Deployment
+  openshift_raw:
+    src: "{{ role_path }}/files/quay-enterprise-deployment.yml"
+
+- name: Create Quay Enterprise Role
+  openshift_raw:
+    src: "{{ role_path }}/files/quay-servicetoken-role-k8s1-6.yml"
+
+# Cannot be done with files yet due to a but in kubernetes-modules
+- name: Create Quay Enterprise RoleBinding
+  openshift_raw:
+    src: "{{ role_path }}/files/quay-servicetoken-role-binding-k8s1-6.yml"
+    # name: quay-enterprise-secret-writer
+    # namespace: quay-enterprise
+    # role_ref_api_group: rbac.authorization.k8s.io
+    # role_ref_kind: Role
+    # role_ref_name: quay-enterprise-serviceaccount
+    # subjects: 
+    # - kind: ServiceAccount 
+    #   name: default
+    # username:
+    # - system:serviceaccount:quay-enterprise:default
+
+#  - name: Add SSL certs 
+#   block:
+
+#   - name: Create temp folder
+#     tempfile:
+#       state: directory
+#       suffix: ".cert"
+#     register: tmp_folder_cert
+
+#   - name: Create CA private key and cert
+#     shell: >
+#       openssl req -x509 -nodes -keyout "{{ tmp_folder_cert.path }}/ca.key" 
+#       -out "{{ tmp_folder_cert.path }}/ca.crt" -newkey rsa:2048 -days 3650 
+#       -subj "/CN={{ quay_enterprise_ca_cn }}"
+
+#   - name: Create an OpenSSL server private key
+#     shell: openssl genrsa -out "{{ tmp_folder_cert.path }}/server.key" 4096
+
+
+#   - name: Create server OpenSSL csr
+#     shell: >
+#       openssl req -new -keyout "{{ tmp_folder_cert.path }}/server.key" -nodes
+#       -out "{{ tmp_folder_cert.path }}/server.csr" -subj "/CN={{ quay_enterprise_server_cn }}"
+
+# # openssl ansible modules does not provide CA signing yet, meant for 2.6
+#   - name: Save cert extensions
+#     template:
+#       src: x509_extensions.j2
+#       dest: "{{ tmp_folder_cert.path }}/x509_extensions_server"
+#     vars:
+#       is_ca: false
+#       subject_alt_name:
+#       - "{{ quay_svc.service.metadata.name }}.{{ quay_svc.service.metadata.namespace }}.svc"
+#       - "{{ quay_route.route.spec.host }}"
+
+# # openssl ansible modules does not provide CA signing yet, meant for 2.6
+#   - name: Generate a Server cert
+#     shell: >
+#       openssl x509 -req -in "{{ tmp_folder_cert.path }}/server.csr"
+#       -CA "{{ tmp_folder_cert.path }}/ca.crt" -CAkey "{{ tmp_folder_cert.path }}/ca.key"
+#       -CAcreateserial -out "{{ tmp_folder_cert.path }}/server.crt" 
+#       -extfile "{{ tmp_folder_cert.path }}/x509_extensions_server" -extensions custom_extensions      

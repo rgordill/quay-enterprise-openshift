@@ -1,0 +1,10 @@
+---
+# defaults file for quay-enterprise
+quay_enterprise_install: true
+
+# Usual set-up
+#quay_enterprise_serviceaccount: quay-enterprise-serviceaccount
+#quay_enterprise_config_secret: quay-enterprise-config-secret
+
+quay_enterprise_ca_cn: "Quay Enterprise CA"
+quay_enterprise_server_cn: "Quay Enterprise Server"

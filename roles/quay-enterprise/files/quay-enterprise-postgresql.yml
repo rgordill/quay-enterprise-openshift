@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: quay-enterprise
+    quay-enterprise-component: postgres
+  name: postgres
+  namespace: quay-enterprise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:  
+      app: quay-enterprise
+      quay-enterprise-component: postgres
+  template:
+    metadata:
+      labels:
+        app: quay-enterprise
+        quay-enterprise-component: postgres
+    spec:
+      containers:
+      - image: registry.access.redhat.com/rhscl/postgresql-96-rhel7
+        env:
+        - name: POSTGRESQL_USER
+          value: admin
+        - name: POSTGRESQL_PASSWORD
+          value: admin
+        - name: POSTGRESQL_DATABASE
+          value: quaydb 
+        imagePullPolicy: IfNotPresent
+        name: postgres
+        ports:
+        - containerPort: 5432
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /var/lib/pgsql/data
+          name: postgres-data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-data

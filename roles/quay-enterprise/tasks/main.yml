@@ -1,0 +1,8 @@
+---
+# tasks file for jboss-datagrid-demo
+
+- include: install.yml
+  when: quay_enterprise_install | bool
+
+- include: uninstall.yml
+  when: not quay_enterprise_install | bool

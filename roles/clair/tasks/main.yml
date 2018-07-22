@@ -1,0 +1,8 @@
+---
+# tasks file for clair
+
+- include: install.yml
+  when: clair_install | bool
+
+- include: uninstall.yml
+  when: not clair_install | bool

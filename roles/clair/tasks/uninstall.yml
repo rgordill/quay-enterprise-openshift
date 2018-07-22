@@ -1,0 +1,20 @@
+---
+# tasks file for clair
+
+- name: Delete Clair ConfigMap
+  k8s_v1_config_map:
+    name: clair
+    namespace: clair
+    state: absent
+
+- name: Delete Clair Service
+  k8s_v1_service:
+    name: clair
+    namespace: clair
+    state: absent
+
+- name: Delete Clair Deployment
+  k8s_apps_v1beta1_deployment:
+    name: clair
+    namespace: clair
+    state: absent

@@ -4,16 +4,19 @@ metadata:
   namespace: quay-enterprise
   name: quay-enterprise-redis
   labels:
+    app: quay-enterprise
     quay-enterprise-component: redis
 spec:
   replicas: 1
   selector:
     matchLabels:  
+      app: quay-enterprise
       quay-enterprise-component: redis
   template:
     metadata:
       namespace: quay-enterprise
       labels:
+        app: quay-enterprise
         quay-enterprise-component: redis
     spec:
       containers:

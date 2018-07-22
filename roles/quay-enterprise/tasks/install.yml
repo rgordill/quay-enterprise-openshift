@@ -13,12 +13,6 @@
 - name: Add SCC anyuid to default account
   shell: "oc adm policy add-scc-to-user anyuid -z default -n quay-enterprise"
 
-# # Create Objects
-# - name: Create Quay postgresql service instance
-#   k8s_raw:
-#     namespace: quay-enterprise
-#     src: "{{ role_path }}/files/quay-enterprise-postgresql.yml"
-
 # Create Objects
 - name: Create Quay postgresql objects
   openshift_raw:
@@ -53,8 +47,8 @@
   openshift_raw:
     src: "{{ role_path }}/files/{{ item }}"
   with_items:
-#  - "quay-enterprise-config-volume.yml"
-  - "quay-enterprise-datastore-volume.yml"
+  - quay-enterprise-config-volume.yml
+  - quay-enterprise-datastore-volume.yml
 
 - name: Create Quay Enterprise Deployment
   openshift_raw:

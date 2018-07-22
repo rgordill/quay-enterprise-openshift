@@ -4,16 +4,19 @@ metadata:
   namespace: quay-enterprise
   name: quay-enterprise-app
   labels:
+    app: quay-enterprise
     quay-enterprise-component: app
 spec:
   replicas: 1
   selector:
     matchLabels:
+      app: quay-enterprise
       quay-enterprise-component: app
   template:
     metadata:
       namespace: quay-enterprise
       labels:
+        app: quay-enterprise
         quay-enterprise-component: app
     spec:
       volumes:

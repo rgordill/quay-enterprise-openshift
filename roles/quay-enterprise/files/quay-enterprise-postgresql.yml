@@ -4,7 +4,7 @@ metadata:
   labels:
     app: quay-enterprise
     quay-enterprise-component: postgres
-  name: postgres
+  name: quay-enterprise-postgres
   namespace: quay-enterprise
 spec:
   replicas: 1

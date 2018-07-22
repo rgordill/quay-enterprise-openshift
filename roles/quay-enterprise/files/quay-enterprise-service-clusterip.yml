@@ -3,6 +3,8 @@ kind: Service
 metadata:
   namespace: quay-enterprise
   name: quay-enterprise
+  labels:
+    app: quay-enterprise
   annotations:
     service.alpha.openshift.io/serving-cert-secret-name: quay-tls
 spec:
@@ -17,4 +19,5 @@ spec:
       targetPort: 443
       name: https
   selector:
+    app: quay-enterprise
     quay-enterprise-component: app

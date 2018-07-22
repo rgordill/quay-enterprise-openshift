@@ -4,9 +4,11 @@ metadata:
   namespace: quay-enterprise
   name: quay-enterprise-redis
   labels:
+    app: quay-enterprise
     quay-enterprise-component: redis
 spec:
   ports:
     - port: 6379
   selector:
+    app: quay-enterprise
     quay-enterprise-component: redis

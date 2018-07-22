@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: clair
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clair
+    spec:
+      volumes:
+      - name: clair-config
+        configMap:
+          name: clair
+      - name: jwt-secret
+        secret:
+          secretName: jwt-signer
+      containers:
+      - name: clair
+        image: quay.io/coreos/clair-jwt:v2.0.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: clair-api
+          containerPort: 6060
+          protocol: TCP
+        - name: clair-health
+          containerPort: 6061
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 6061
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 6061
+        volumeMounts:
+        - name: clair-config
+          mountPath: /config
+        - name: jwt-secret
+          mountPath: /secret
+        resources:
+          limits:
+            cpu: 200m
+            memory: 1500Mi
+          requests:
+            cpu: 100m
+            memory: 500Mi

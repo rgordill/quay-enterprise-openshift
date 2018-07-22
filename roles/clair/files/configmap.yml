@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clair
+data:
+  config.yaml: |
+    clair:
+      database:
+        type: pgsql
+        options:
+          source: "postgres://clair:clair@postgresql.clair.svc:5432/clair?sslmode=disable"
+          cachesize: 16384
+
+      api:
+        healthport: 6061
+        port: 6062
+        timeout: "900s"
+
+        paginationkey: "XxoPtCUzrUv4JV5dS+yQ+MdW7yLEJnRMwigVY/bpgtQ="
+
+      worker:
+        namespace_detectors:
+        - os-release
+        - lsb-release
+        - apt-sources
+        - alpine-release
+        - redhat-release
+
+        feature_listers:
+        - apk
+        - dpkg
+        - rpm
+
+      updater:
+        interval: "2h"
+        enabledupdaters:
+        - debian
+        - ubuntu
+        - rhel
+        - oracle
+        - alpine
+
+        notifier:
+          attempts: 3
+          renotifyinterval: 1h
+
+          http:
+            endpoint: "https://quay-enterprise.quay-enterprise.svc/secscan/notify"
+            proxy: http://localhost:6063
+
+    jwtproxy:
+      signer_proxy:
+        enabled: true
+        listen_addr: :6063
+        ca_key_file: /certificates/mitm.key # Generated internally, do not change.
+        ca_crt_file: /certificates/mitm.crt # Generated internally, do not change.
+        signer:
+          issuer: security_scanner
+          expiration_time: 5m
+          max_skew: 1m
+          nonce_length: 32
+          private_key:
+            type: preshared
+            options:
+              key_id: 230af5479278871e7b33352b31696f2b150ae4a58be48af9c674034dcbb73aec
+              private_key_path: /secret/security_scanner.pem
+
+      verifier_proxies:
+      - enabled: true
+        listen_addr: :6060
+
+        verifier:
+          audience: http://clair.clair.svc:6060
+
+          upstream: http://localhost:6062
+          key_server:
+            type: keyregistry
+            options:
+              registry: https://quay-enterprise.quay-enterprise.svc/keys/
+
+  supervisord.conf: |
+    [supervisord]
+    nodaemon=true
+
+    [group:clairjwt]
+    programs=clair,jwtproxy
+
+    [program:jwtproxy]
+    command=jwtproxy -config /config/config.yaml
+    autorestart=true
+    startretries=15
+    stdout_logfile=/dev/stdout
+    stdout_logfile_maxbytes=0
+    stderr_logfile=/dev/stderr
+    stderr_logfile_maxbytes=0
+    stopasgroup=true
+    killasgroup=true
+
+    [program:clair]
+    command=clair -config /config/config.yaml -log-level debug
+    autorestart=true
+    stdout_logfile=/dev/stdout
+    stdout_logfile_maxbytes=0
+    stderr_logfile=/dev/stderr
+    stderr_logfile_maxbytes=0
+    stopasgroup=true
+    killasgroup=true

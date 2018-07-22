@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: postgres
-  name: postgres
+  name: quay-enterprise-postgres
   namespace: quay-enterprise
 spec:
   ports:

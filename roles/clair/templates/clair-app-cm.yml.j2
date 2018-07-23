@@ -1,15 +1,18 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: clair
-  namespace: quay-enterprise
+  labels:
+    app: clair
+    clairComponent: "{{ clair_app_component }}"
+  name: "{{ clair_app_configmap }}"
+  namespace: "{{ clair_namespace }}"
 data:
   config.yaml: |
     clair:
       database:
         type: pgsql
         options:
-          source: "postgres://clair:clair@clair-postgres.quay-enterprise.svc:5432/clair?sslmode=disable"
+          source: "postgres://{{ clair_postgres_user }}:{{ clair_postgres_password }}@{{ clair_postgres_service }}.{{ clair_namespace }}.svc:5432/{{ clair_postgres_database }}?sslmode=disable"
           cachesize: 16384
 
       api:
@@ -71,38 +74,10 @@ data:
         listen_addr: :6060
 
         verifier:
-          audience: http://clair.quay-enterprise.svc:6060
+          audience: http://{{ clair_app_service }}.{{ clair_namespace }}.svc:6060
 
           upstream: http://localhost:6062
           key_server:
             type: keyregistry
             options:
               registry: https://quay-enterprise.quay-enterprise.svc/keys/
-
-  supervisord.conf: |
-    [supervisord]
-    nodaemon=true
-
-    [group:clairjwt]
-    programs=clair,jwtproxy
-
-    [program:jwtproxy]
-    command=jwtproxy -config /config/config.yaml -log-level debug
-    autorestart=true
-    startretries=15
-    stdout_logfile=/dev/stdout
-    stdout_logfile_maxbytes=0
-    stderr_logfile=/dev/stderr
-    stderr_logfile_maxbytes=0
-    stopasgroup=true
-    killasgroup=true
-
-    [program:clair]
-    command=clair -config /config/config.yaml -log-level debug
-    autorestart=true
-    stdout_logfile=/dev/stdout
-    stdout_logfile_maxbytes=0
-    stderr_logfile=/dev/stderr
-    stderr_logfile_maxbytes=0
-    stopasgroup=true
-    killasgroup=true

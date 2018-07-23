@@ -3,36 +3,35 @@ kind: Deployment
 metadata:
   labels:
     app: clair
-    clair-component: postgres
+    clairComponent: "{{ clair_postgres_component }}"
   name: clair-postgres
-  namespace: quay-enterprise
+  namespace: {{ clair_namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:  
       app: clair
-      clair-component: postgres
+      clairComponent: "{{ clair_postgres_component }}"
   template:
     metadata:
       labels:
         app: clair
-        clair-component: postgres
+        clairComponent: "{{ clair_postgres_component }}"
     spec:
       containers:
-      - image: registry.access.redhat.com/rhscl/postgresql-96-rhel7
+      - image: "{{ clair_postgres_image }}"
         env:
         - name: POSTGRESQL_USER
-          value: clair
+          value: "{{ clair_postgres_user }}"
         - name: POSTGRESQL_PASSWORD
-          value: clair
+          value: "{{ clair_postgres_password }}"
         - name: POSTGRESQL_DATABASE
-          value: clair
+          value: "{{ clair_postgres_user }}"
         imagePullPolicy: IfNotPresent
         name: postgres
         ports:
         - containerPort: 5432
           protocol: TCP
-        resources: {}
         volumeMounts:
         - mountPath: /var/lib/pgsql/data
           name: postgres-data
@@ -41,4 +40,4 @@ spec:
       volumes:
       - name: postgres-data
         persistentVolumeClaim:
-          claimName: clair-postgres-data
+          claimName: "{{ clair_postgres_claim_name }}"

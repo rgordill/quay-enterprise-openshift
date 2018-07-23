@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: clair
-  namespace: quay-enterprise
+  name: "{{ clair_app_service }}"
+  namespace: "{{ clair_namespace }}"
   label:
     app: clair
-    component: clair-app
+    clairComponent: "{{ clair_app_component }}"
   annotations:
-    service.alpha.openshift.io/serving-cert-secret-name: jwt-signer
+    service.alpha.openshift.io/serving-cert-secret-name: "{{ clair_app_cert }}"
 spec:
   type: ClusterIP
   ports:
@@ -20,4 +20,4 @@ spec:
     targetPort: 6061
     protocol: TCP
   selector:
-    component: clair-app
+    clairComponent: "{{ clair_app_component }}"

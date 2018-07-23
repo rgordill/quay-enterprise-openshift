@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    app: clair
+    clairComponent: "{{ clair_postgres_component }}"
+  name: "{{ clair_postgres_claim_name }}"
+  namespace: "{{ clair_namespace }}"
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: "{{ clair_postgres_claim_size }}"

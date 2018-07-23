@@ -3,9 +3,9 @@ kind: Service
 metadata:
   labels:
     app: clair
-    clair-component: postgres
-  name: clair-postgres
-  namespace: quay-enterprise
+    clairComponent: "{{ clair_postgres_component }}"
+  name: "{{ clair_postgres_service }}"
+  namespace: "{{ clair_namespace }}"
 spec:
   ports:
   - name: 5432-tcp
@@ -13,6 +13,6 @@ spec:
     protocol: TCP
     targetPort: 5432
   selector:
-    clair-component: postgres
+    clairComponent: "{{ clair_postgres_component }}"
   sessionAffinity: None
   type: ClusterIP

@@ -1,5 +1,24 @@
 ---
-# defaults file for quay-enterprise
+# defaults file for clair
+
 clair_install: true
+
+clair_namespace: quay-enterprise
+
+clair_postgres_component: clair-postgres
+clair_postgres_service: clair-postgres
+clair_postgres_user: clair
+clair_postgres_password: clair
+clair_postgres_database: clair
+clair_postgres_image: registry.access.redhat.com/rhscl/postgresql-96-rhel7:latest
+
+clair_postgres_claim_name: clair-postgres-data
+clair_postgres_claim_size: 1Gi
+
+clair_app_component: clair-app
+clair_app_service: clair
+clair_app_image: quay.io/coreos/clair-jwt:v2.0.4
+clair_app_configmap: clair-app
+clair_app_cert: jwt-signer
 
 

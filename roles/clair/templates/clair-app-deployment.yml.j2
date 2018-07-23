@@ -1,26 +1,33 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  labels:
+    app: clair
+    clairComponent: "{{ clair_app_component }}"
   name: clair
-  namespace: quay-enterprise
+  namespace: "{{ clair_namespace }}"
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: clair
+      clairComponent: "{{ clair_app_component }}"
   template:
     metadata:
       labels:
         app: clair
-        component: clair-app
+        clairComponent: "{{ clair_app_component }}"
     spec:
       volumes:
       - name: clair-config
         configMap:
-          name: clair
+          name: "{{ clair_app_configmap  }}"
       - name: jwt-secret
         secret:
-          secretName: jwt-signer
+          secretName: "{{ clair_app_cert }}"
       containers:
       - name: clair
-        image: quay.io/coreos/clair-jwt:v2.0.4
+        image: "{{ clair_app_image }}"
         imagePullPolicy: IfNotPresent
         ports:
         - name: clair-api

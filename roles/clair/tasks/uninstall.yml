@@ -1,20 +1,19 @@
 ---
-# tasks file for clair
+# Delete Objects
+- name: Create Clair App Objects
+  openshift_raw:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+    state: absent
+  with_items:
+  - clair-app-cm.yml.j2
+  - clair-app-deployment.yml.j2
+  - clair-app-service.yml.j2
 
-# - name: Delete Clair ConfigMap
-#   openshift_raw:
-#     name: clair
-#     namespace: clair
-#     state: absent
-
-# - name: Delete Clair Service
-#   openshift_raw:
-#     name: clair
-#     namespace: clair
-#     state: absent
-
-# - name: Delete Clair Deployment
-#   openshift_raw:
-#     name: clair
-#     namespace: clair
-#     state: absent
+- name: Delete Clair Postgres
+  openshift_raw:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+    state: absent
+  with_items:
+  - clair-postgresql-pvc.yml.j2
+  - clair-postgresql-deployment.yml.j2
+  - clair-postgresql-service.yml.j2

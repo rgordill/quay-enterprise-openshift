@@ -2,33 +2,31 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: quay-enterprise
-    quay-enterprise-component: postgres
-  name: quay-enterprise-postgres
+    app: clair
+    clair-component: postgres
+  name: clair-postgres
   namespace: quay-enterprise
 spec:
   replicas: 1
   selector:
     matchLabels:  
-      app: quay-enterprise
-      quay-enterprise-component: postgres
+      app: clair
+      clair-component: postgres
   template:
     metadata:
       labels:
-        app: quay-enterprise
-        quay-enterprise-component: postgres
+        app: clair
+        clair-component: postgres
     spec:
       containers:
       - image: registry.access.redhat.com/rhscl/postgresql-96-rhel7
         env:
         - name: POSTGRESQL_USER
-          value: admin
+          value: clair
         - name: POSTGRESQL_PASSWORD
-          value: admin
+          value: clair
         - name: POSTGRESQL_DATABASE
-          value: quaydb 
-        - name: POSTGRESQL_ADMIN_PASSWORD
-          value: admin
+          value: clair
         imagePullPolicy: IfNotPresent
         name: postgres
         ports:
@@ -43,4 +41,4 @@ spec:
       volumes:
       - name: postgres-data
         persistentVolumeClaim:
-          claimName: quay-postgres-data
+          claimName: clair-postgres-data

@@ -1,5 +1,5 @@
 ---
-# tasks file for jboss-datagrid-demo
+# tasks file for quay enterprise
 
 - include: install.yml
   when: quay_enterprise_install | bool

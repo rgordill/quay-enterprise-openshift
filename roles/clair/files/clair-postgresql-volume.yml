@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: quay-postgres-data
+  name: clair-postgres-data
   namespace: quay-enterprise
 spec:
   accessModes:

@@ -2,12 +2,14 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: clair
+  namespace: quay-enterprise
 spec:
   replicas: 1
   template:
     metadata:
       labels:
         app: clair
+        component: clair-app
     spec:
       volumes:
       - name: clair-config
@@ -18,7 +20,7 @@ spec:
           secretName: jwt-signer
       containers:
       - name: clair
-        image: quay.io/coreos/clair-jwt:v2.0.2
+        image: quay.io/coreos/clair-jwt:v2.0.4
         imagePullPolicy: IfNotPresent
         ports:
         - name: clair-api

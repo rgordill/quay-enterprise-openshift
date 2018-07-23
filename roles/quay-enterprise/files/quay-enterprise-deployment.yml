@@ -26,6 +26,9 @@ spec:
       - name: datastorage
         persistentVolumeClaim:
           claimName: quay-datastorage
+      - name: quay-tls
+        secret:
+          secretName: quay-tls
       containers:
       - name: quay-enterprise-app
         image: quay.io/coreos/quay:v2.9.1
@@ -37,5 +40,7 @@ spec:
           mountPath: /conf/stack
         - name: datastorage
           mountPath: /datastorage          
+        - mountPath: /quay-tls
+          name: quay-tls
       imagePullSecrets:
         - name: coreos-pull-secret

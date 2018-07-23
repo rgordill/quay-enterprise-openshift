@@ -1,2 +1,32 @@
 ---
-# Delete extra objects
+# Delete Objects
+- name: Delete Quay PostgreSQL objects
+  openshift_raw:
+    src: "{{ role_path }}/files/{{ item }}"
+    state: absent
+  with_items:
+  - quay-enterprise-postgresql-volume.yml
+  - quay-enterprise-postgresql.yml
+  - quay-enterprise-postgresql-service.yml
+
+
+- name: Delete Quay Redis objects
+  openshift_raw:
+    src: "{{ role_path }}/files/{{ item }}"
+    state: absent
+  with_items:
+  - quay-enterprise-redis.yml
+  - quay-enterprise-redis-service.yml
+
+- name: Delete Quay App objects
+  openshift_raw:
+    src: "{{ role_path }}/files/{{ item }}"
+    state: absent
+  with_items:
+  - quay-enterprise-config-secret.yml
+  - quay-enterprise-route.yml
+  - quay-enterprise-config-volume.yml
+  - quay-enterprise-datastore-volume.yml
+  - quay-enterprise-deployment.yml
+  - quay-servicetoken-role-k8s1-6.yml
+  - quay-servicetoken-role-binding-k8s1-6.yml

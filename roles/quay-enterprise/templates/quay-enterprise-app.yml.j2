@@ -1,37 +1,37 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  namespace: quay-enterprise
-  name: quay-enterprise-app
+  namespace: "{{ quay_enterprise_namespace }}"
+  name: "{{ quay_enterprise_app_component }}"
   labels:
     app: quay-enterprise
-    quay-enterprise-component: app
+    quay-enterprise-component: "{{ quay_enterprise_app_component }}"
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: quay-enterprise
-      quay-enterprise-component: app
+      quay-enterprise-component: "{{ quay_enterprise_app_component }}"
   template:
     metadata:
-      namespace: quay-enterprise
+      namespace: "{{ quay_enterprise_namespace }}"
       labels:
         app: quay-enterprise
-        quay-enterprise-component: app
+        quay-enterprise-component: "{{ quay_enterprise_app_component }}"
     spec:
       volumes:
       - name: configvolume
         persistentVolumeClaim:
-          claimName: quay-enterprise-config
+          claimName: "{{ quay_enterprise_app_configmap }}"
       - name: datastorage
         persistentVolumeClaim:
-          claimName: quay-datastorage
+          claimName: "{{ quay_enterprise_app_claim_name }}"
       - name: quay-tls
         secret:
-          secretName: quay-tls
+          secretName: "{{ quay_enterprise_app_cert_secret_name }}"
       containers:
-      - name: quay-enterprise-app
-        image: quay.io/coreos/quay:v2.9.1
+      - name: "{{ quay_enterprise_app_component }}"
+        image: "{{ quay_enterprise_app_image }}"
         ports:
         - containerPort: 80
           protocol: TCP
@@ -40,7 +40,7 @@ spec:
           mountPath: /conf/stack
         - name: datastorage
           mountPath: /datastorage          
-        - mountPath: /quay-tls
-          name: quay-tls
+        - name: quay-tls
+          mountPath: /quay-tls
       imagePullSecrets:
         - name: coreos-pull-secret

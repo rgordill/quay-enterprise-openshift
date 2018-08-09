@@ -2,9 +2,34 @@
 # defaults file for quay-enterprise
 quay_enterprise_install: true
 
-# Usual set-up
-#quay_enterprise_serviceaccount: quay-enterprise-serviceaccount
-#quay_enterprise_config_secret: quay-enterprise-config-secret
+quay_enterprise_namespace: quay-enterprise
+quay_enterprise_role: quay-enterprise-serviceaccount
+
+quay_enterprise_postgres_component: quay-enterprise-postgres
+quay_enterprise_postgres_service: quay-enterprise-postgres
+# Should be postgres, as it needs admin priviledges to execute pg_pgrm
+quay_enterprise_postgres_user: postgres
+quay_enterprise_postgres_password: quay
+quay_enterprise_postgres_database: quay
+quay_enterprise_postgres_image: registry.access.redhat.com/rhscl/postgresql-96-rhel7:latest
+
+quay_enterprise_postgres_claim_name: quay-enterprise-postgres-data
+quay_enterprise_postgres_claim_size: 1Gi
+
+quay_enterprise_redis_component: quay-enterprise-redis
+quay_enterprise_redis_service: quay-enterprise-redis
+quay_enterprise_redis_image: quay.io/quay/redis:latest
+
+quay_enterprise_app_component: quay-enterprise-app
+quay_enterprise_app_service: quay-enterprise
+quay_enterprise_app_image: quay.io/coreos/quay:v2.9.2
+
+quay_enterprise_app_cert_secret_name: quay-tls
+quay_enterprise_app_configmap: quay-enterprise-config
+
+quay_enterprise_app_claim_name: quay-datastorage
+quay_enterprise_app_claim_size: 20Gi
 
 quay_enterprise_ca_cn: "Quay Enterprise CA"
 quay_enterprise_server_cn: "Quay Enterprise Server"
+

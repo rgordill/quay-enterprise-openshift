@@ -5,7 +5,7 @@ metadata:
     app: quay-enterprise
     quay-enterprise-component: postgres
   name: quay-enterprise-postgres
-  namespace: quay-enterprise
+  namespace: "{{ quay_enterprise_namespace }}"
 spec:
   replicas: 1
   selector:
@@ -19,14 +19,14 @@ spec:
         quay-enterprise-component: postgres
     spec:
       containers:
-      - image: registry.access.redhat.com/rhscl/postgresql-96-rhel7
+      - image: "{{ quay_enterprise_postgres_image }}"
         env:
         - name: POSTGRESQL_USER
-          value: admin
+          value: "{{ quay_enterprise_postgres_user }}"
         - name: POSTGRESQL_PASSWORD
-          value: admin
+          value: "{{ quay_enterprise_postgres_password }}"
         - name: POSTGRESQL_DATABASE
-          value: quaydb 
+          value: "{{ quay_enterprise_postgres_database }}" 
         - name: POSTGRESQL_ADMIN_PASSWORD
           value: admin
         imagePullPolicy: IfNotPresent
@@ -43,4 +43,4 @@ spec:
       volumes:
       - name: postgres-data
         persistentVolumeClaim:
-          claimName: quay-postgres-data
+          claimName: "{{ quay_enterprise_postgres_claim_name }}"

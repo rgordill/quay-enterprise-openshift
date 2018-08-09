@@ -1,8 +1,8 @@
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: Role
 metadata:  
-  name: quay-enterprise-serviceaccount
-  namespace: quay-enterprise
+  name: "{{ quay_enterprise_role }}"
+  namespace: "{{ quay_enterprise_namespace }}"
 rules:
 - apiGroups:
   - ""

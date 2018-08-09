@@ -1,26 +1,26 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  namespace: quay-enterprise
+  namespace: "{{ quay_enterprise_namespace }}"
   name: quay-enterprise-redis
   labels:
     app: quay-enterprise
-    quay-enterprise-component: redis
+    quay-enterprise-component: "{{ quay_enterprise_redis_component }}"
 spec:
   replicas: 1
   selector:
     matchLabels:  
       app: quay-enterprise
-      quay-enterprise-component: redis
+      quay-enterprise-component: "{{ quay_enterprise_redis_component }}"
   template:
     metadata:
-      namespace: quay-enterprise
+      namespace: "{{ quay_enterprise_namespace }}"
       labels:
         app: quay-enterprise
-        quay-enterprise-component: redis
+        quay-enterprise-component: "{{ quay_enterprise_redis_component }}"
     spec:
       containers:
       - name: redis-master
-        image: quay.io/quay/redis
+        image: "{{ quay_enterprise_redis_image }}"
         ports:
         - containerPort: 6379

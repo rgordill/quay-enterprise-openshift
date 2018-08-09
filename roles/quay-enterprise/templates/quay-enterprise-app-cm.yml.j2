@@ -1,12 +1,11 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: quay-datastorage
-  namespace: quay-enterprise
+  name: "{{ quay_enterprise_app_configmap }}"
+  namespace: "{{ quay_enterprise_namespace }}"
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
-
+      storage: 200Mi

@@ -1,0 +1,27 @@
+---
+# tasks file for noobaa
+
+# Create Project
+- name: Create NooBaa Project if missing
+  k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ noobaa_namespace }}"
+    state: present
+
+- name: Set Random Password if not provided 
+  vars:
+    noobaa_tmp_passwd: "{{ lookup('password', '/dev/null length=10 chars=ascii_letters') }}"
+  set_fact:
+    noobaa_admin_passwd: "{{ noobaa_tmp_passwd }}"
+  when: noobaa_admin_passwd is not defined
+
+- name: Create NooBaa Objects
+  k8s:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+  with_items:
+  - noobaa-sa.yml.j2
+  - noobaa-role.yml.j2
+  - noobaa-rolebinding.yml.j2
+  - noobaa-svc.yml.j2
+  - noobaa-sts.yml.j2

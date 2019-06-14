@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: quay-enterprise
-    quay-enterprise-component: postgres
+    quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
   name: quay-enterprise-postgres
   namespace: "{{ quay_enterprise_namespace }}"
 spec:
@@ -11,12 +11,12 @@ spec:
   selector:
     matchLabels:  
       app: quay-enterprise
-      quay-enterprise-component: postgres
+      quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
   template:
     metadata:
       labels:
         app: quay-enterprise
-        quay-enterprise-component: postgres
+        quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
     spec:
       containers:
       - image: "{{ quay_enterprise_postgres_image }}"
@@ -28,7 +28,7 @@ spec:
         - name: POSTGRESQL_DATABASE
           value: "{{ quay_enterprise_postgres_database }}" 
         - name: POSTGRESQL_ADMIN_PASSWORD
-          value: admin
+          value: "{{ quay_enterprise_postgres_admin_password }}"
         imagePullPolicy: IfNotPresent
         name: postgres
         ports:

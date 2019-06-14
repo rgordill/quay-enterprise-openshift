@@ -20,9 +20,9 @@ spec:
         quay-enterprise-component: "{{ quay_enterprise_app_component }}"
     spec:
       volumes:
-      - name: configvolume
-        persistentVolumeClaim:
-          claimName: "{{ quay_enterprise_app_configmap }}"
+      - name: configsecret
+        secret:
+          secretName: "{{ quay_enterprise_app_config_secret }}"
       - name: datastorage
         persistentVolumeClaim:
           claimName: "{{ quay_enterprise_app_claim_name }}"
@@ -32,11 +32,16 @@ spec:
       containers:
       - name: "{{ quay_enterprise_app_component }}"
         image: "{{ quay_enterprise_app_image }}"
+        env:
+        - name: QE_K8S_NAMESPACE
+          value: "{{ quay_enterprise_namespace }}"
+        - name: QE_K8S_CONFIG_SECRET
+          value: "{{ quay_enterprise_app_config_secret }}"
         ports:
         - containerPort: 80
           protocol: TCP
         volumeMounts:
-        - name: configvolume
+        - name: configsecret
           mountPath: /conf/stack
         - name: datastorage
           mountPath: /datastorage          

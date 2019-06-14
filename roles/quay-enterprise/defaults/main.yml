@@ -1,4 +1,6 @@
 ---
+kubernetes: false
+
 # defaults file for quay-enterprise
 quay_enterprise_install: true
 
@@ -11,6 +13,7 @@ quay_enterprise_postgres_service: quay-enterprise-postgres
 quay_enterprise_postgres_user: postgres
 quay_enterprise_postgres_password: quay
 quay_enterprise_postgres_database: quay
+quay_enterprise_postgres_admin_password: admin
 quay_enterprise_postgres_image: registry.access.redhat.com/rhscl/postgresql-96-rhel7:latest
 
 quay_enterprise_postgres_claim_name: quay-enterprise-postgres-data
@@ -22,14 +25,14 @@ quay_enterprise_redis_image: quay.io/quay/redis:latest
 
 quay_enterprise_app_component: quay-enterprise-app
 quay_enterprise_app_service: quay-enterprise
-quay_enterprise_app_image: quay.io/coreos/quay:v2.9.2
+quay_enterprise_app_image: quay.io/coreos/quay:v3.0.2
 
 quay_enterprise_app_cert_secret_name: quay-tls
-quay_enterprise_app_configmap: quay-enterprise-config
+quay_enterprise_app_config_secret: quay-enterprise-config-secret
 
 quay_enterprise_app_claim_name: quay-datastorage
-quay_enterprise_app_claim_size: 20Gi
+quay_enterprise_app_claim_size: 5Gi
 
-quay_enterprise_ca_cn: "Quay Enterprise CA"
-quay_enterprise_server_cn: "Quay Enterprise Server"
+#quay_enterprise_ca_cn: "Quay Enterprise CA"
+#quay_enterprise_server_cn: "Quay Enterprise Server"
 

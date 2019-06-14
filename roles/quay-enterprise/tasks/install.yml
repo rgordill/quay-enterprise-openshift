@@ -28,7 +28,7 @@
   - quay-enterprise-redis.yml.j2
   - quay-enterprise-redis-service.yml.j2
 
-- name: Create Quay Enterprise Role and RoleBinding
+- name: Create Quay Enterprise App Objects
   openshift_raw:
     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
   with_items:
@@ -36,7 +36,7 @@
   - quay-enterprise-app-rolebinding.yml.j2
   - quay-enterprise-app-service.yml.j2
   - quay-enterprise-app-route.yml.j2
-  - quay-enterprise-app-cm.yml.j2
+  - quay-enterprise-app-secret.yml.j2
   - quay-enterprise-app-pvc.yml.j2
   - quay-enterprise-app.yml.j2
 

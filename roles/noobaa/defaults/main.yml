@@ -1,0 +1,18 @@
+---
+# defaults file for clair
+
+noobaa_install: true
+
+noobaa_app: noobaa
+noobaa_serviceaccount: noobaa-account
+noobaa_role: noobaa-role
+noobaa_service: noobaa-mgmt
+
+noobaa_namespace: noobaa
+noobaa_admin_sysname: noobaa
+noobaa_admin_email: admin@noobaa.io
+
+noobaa_secret_name: noobaa-create-sys-creds
+
+noobaa_pv_logdir_size: 100Mb
+noobaa_pv_datadir_size: 500Mb

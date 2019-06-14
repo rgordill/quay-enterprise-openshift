@@ -1,0 +1,8 @@
+---
+# tasks file for clair
+
+- include: install.yml
+  when: noobaa_install | bool
+
+- include: uninstall.yml
+  when: not noobaa_install | bool

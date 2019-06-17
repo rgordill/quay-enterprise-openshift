@@ -9,4 +9,4 @@ roleRef:
   name: "{{ quay_enterprise_role }}"
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: "{{ quay_enterprise_serviceaccount }}"

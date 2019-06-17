@@ -1,5 +1,6 @@
 ---
 # tasks file for quay enterprise
+- include: kubernetes.yml
 
 - include: install.yml
   when: quay_enterprise_install | bool

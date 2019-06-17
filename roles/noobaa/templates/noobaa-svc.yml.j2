@@ -1,0 +1,32 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ noobaa_service }}
+  namespace: {{ noobaa_namespace }}
+  labels:
+    app: {{ noobaa_app }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/scheme: http
+    prometheus.io/port: "8080"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      name: mgmt
+    - port: 8443
+      name: mgmt-https
+    - port: 8444
+      name: md-https
+    - port: 8445
+      name: bg-https
+    - port: 8446
+      name: hosted-agents-https
+    - port: 80
+      targetPort: 6001
+      name: s3
+    - port: 443
+      targetPort: 6443
+      name: s3-https
+  selector:
+    noobaa-mgmt: "true"

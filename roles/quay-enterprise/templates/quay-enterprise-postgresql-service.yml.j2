@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: quay-enterprise
-  name: "{{ quay_enterprise_postgres_service }}"
+    app: "{{ quay_enterprise_app }}"
+  name: "{{ quay_enterprise_postgresql_service }}"
   namespace: "{{ quay_enterprise_namespace }}"
 spec:
   ports:
@@ -12,6 +12,6 @@ spec:
     protocol: TCP
     targetPort: 5432
   selector:
-    quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
+    quay-enterprise-component: "{{ quay_enterprise_postgresql_component }}"
   sessionAffinity: None
   type: ClusterIP

@@ -1,0 +1,14 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ noobaa_role }}-binding
+  namespace: {{ noobaa_namespace }}
+  labels:
+    app: {{ noobaa_app }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ noobaa_serviceaccount }}
+roleRef:
+  kind: Role
+  name: {{ noobaa_role }}
+  apiGroup: rbac.authorization.k8s.io

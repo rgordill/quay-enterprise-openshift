@@ -2,39 +2,53 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: quay-enterprise
-    quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
-  name: quay-enterprise-postgres
+    app: "{{ quay_enterprise_app }}"
+    quay-enterprise-component: "{{ quay_enterprise_postgresql_component }}"
+  name: "{{ quay_enterprise_postgresql_component }}"
   namespace: "{{ quay_enterprise_namespace }}"
 spec:
   replicas: 1
   selector:
     matchLabels:  
-      app: quay-enterprise
-      quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
+      app: "{{ quay_enterprise_app }}"
+      quay-enterprise-component: "{{ quay_enterprise_postgresql_component }}"
   template:
     metadata:
       labels:
-        app: quay-enterprise
-        quay-enterprise-component: "{{ quay_enterprise_postgres_component }}"
+        app: "{{ quay_enterprise_app }}"
+        quay-enterprise-component: "{{ quay_enterprise_postgresql_component }}"
     spec:
       containers:
-      - image: "{{ quay_enterprise_postgres_image }}"
+      - name: postgres
+        image: "{{ quay_enterprise_postgresql_image }}"
         env:
         - name: POSTGRESQL_USER
-          value: "{{ quay_enterprise_postgres_user }}"
+          value: "{{ quay_enterprise_postgresql_user }}"
         - name: POSTGRESQL_PASSWORD
-          value: "{{ quay_enterprise_postgres_password }}"
+          value: "{{ quay_enterprise_postgresql_password }}"
         - name: POSTGRESQL_DATABASE
-          value: "{{ quay_enterprise_postgres_database }}" 
+          value: "{{ quay_enterprise_postgresql_database }}" 
         - name: POSTGRESQL_ADMIN_PASSWORD
-          value: "{{ quay_enterprise_postgres_admin_password }}"
+          value: "{{ quay_enterprise_postgresql_admin_password }}"
         imagePullPolicy: IfNotPresent
-        name: postgres
         ports:
         - containerPort: 5432
           protocol: TCP
         resources: {}
+        readinessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 5
+          exec:
+            command:
+            - "/bin/sh"
+            - "-i"
+            - "-c"
+            - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'
+        livenessProbe:
+          timeoutSeconds: 1
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 5432
         volumeMounts:
         - mountPath: /var/lib/pgsql/data
           name: postgres-data
@@ -43,4 +57,4 @@ spec:
       volumes:
       - name: postgres-data
         persistentVolumeClaim:
-          claimName: "{{ quay_enterprise_postgres_claim_name }}"
+          claimName: "{{ quay_enterprise_postgresql_claim_name }}"

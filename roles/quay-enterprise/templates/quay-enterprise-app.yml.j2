@@ -48,4 +48,6 @@ spec:
         - name: quay-tls
           mountPath: /quay-tls
       imagePullSecrets:
-        - name: coreos-pull-secret
+        - name: redhat-quay-pull-secret
+      serviceAccount: quay-enterprise-sa
+      serviceAccountName: quay-enterprise-sa

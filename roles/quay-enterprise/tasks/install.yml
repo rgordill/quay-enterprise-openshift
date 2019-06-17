@@ -1,44 +1,91 @@
 ---
 # tasks file for Quay Enterprise
 
-# Create Project
+# Create Project/Namespace
 - name: Create Quay Enterprise project
-  openshift_raw:
+  k8s:
     api_version: v1
-    kind: Project
-    name: quay-enterprise
+    kind: "{{ namespace_object }}"
+    name: "{{ quay_enterprise_namespace }}"
     state: present
 
-- name: Add SCC anyuid to default account
-  shell: "oc adm policy add-scc-to-user anyuid -z default -n quay-enterprise"
+# - name: Create Service Account
+#   shell: "oc create serviceaccount quay-enterprise-sa -n {{ quay_enterprise_namespace }}"
+#   when: not kubernetes | bool
+
+# - name: Add SCC anyuid to default account
+#   shell: "oc adm policy add-scc-to-user anyuid -z quay-enterprise-sa -n {{ quay_enterprise_namespace }}"
+#   when: not kubernetes | bool
 
 # Create Objects
-- name: Create Quay postgresql objects
-  openshift_raw:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-postgresql-pvc.yml.j2
-  - quay-enterprise-postgresql.yml.j2
-  - quay-enterprise-postgresql-service.yml.j2
+# - name: Create Quay postgresql objects
+#   k8s:
+#     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+#   with_items:
+#   - quay-enterprise-postgresql-pvc.yml.j2
+#   - quay-enterprise-postgresql-service.yml.j2
+#   - quay-enterprise-postgresql.yml.j2
+
+- name: Check if PostgreSQL is up
+  k8s_facts:
+    kind: Pod
+    namespace: "{{ quay_enterprise_namespace }}"
+    label_selectors:
+      - "quay-enterprise-component={{ quay_enterprise_app_component }}"
+    field_selectors:
+      - "status.phase=Running"
+  register: postgresql_pod
+  until:
+   "(postgresql_pod| length > 0) and (postgresql_pod.resources[0].status.containerStatuses[0].ready == true)"
+  retries: 30
+  delay: 5
+
+- name: exit now
+  fail: msg="I don't need anymore"
 
 - name: Create Quay Enterprise Redis objects
-  openshift_raw:
+  k8s:
     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
   with_items:
   - quay-enterprise-redis.yml.j2
   - quay-enterprise-redis-service.yml.j2
 
+- name: Create Quay Enterprise App pull credentials
+  k8s:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+  with_items:
+  - quay-enterprise-app-secret-pull.yml.j2
+
 - name: Create Quay Enterprise App Objects
-  openshift_raw:
+  k8s:
     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
   with_items:
   - quay-enterprise-app-role.yml.j2
   - quay-enterprise-app-rolebinding.yml.j2
   - quay-enterprise-app-service.yml.j2
-  - quay-enterprise-app-route.yml.j2
   - quay-enterprise-app-secret.yml.j2
   - quay-enterprise-app-pvc.yml.j2
+
+- name: Create Quay Enterprise App Deployment
+  k8s:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+  with_items:
   - quay-enterprise-app.yml.j2
+
+- name: Create Quay Enterprise kubernetes ingress
+  k8s:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+  with_items:
+  - quay-enterprise-app-ingress.yml.j2
+  when: kubernetes | bool
+
+- name: Create Quay Enterprise openshift route
+  k8s:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+  with_items:
+  - quay-enterprise-app-route.yml.j2
+  when: not kubernetes | bool
+
 
 # - name: Create Quay Enterprise Secret
 #   openshift_raw:

@@ -20,8 +20,10 @@
   k8s:
     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
   with_items:
+  - noobaa-secret.yml.j2
   - noobaa-sa.yml.j2
   - noobaa-role.yml.j2
   - noobaa-rolebinding.yml.j2
-  - noobaa-svc.yml.j2
   - noobaa-sts.yml.j2
+  - noobaa-svc.yml.j2
+  - noobaa-ingress.yml.j2

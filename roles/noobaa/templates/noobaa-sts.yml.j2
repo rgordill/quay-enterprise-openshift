@@ -1,0 +1,94 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: {{ noobaa_app }}-server
+  namespace: {{ noobaa_namespace }}
+  labels:
+    app: {{ noobaa_app }}
+    noobaa-module: {{ noobaa_app }}-server
+spec:
+  selector:
+    matchLabels:
+      noobaa-module: {{ noobaa_app }}-server
+  serviceName: {{ noobaa_service }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ noobaa_app }}
+        noobaa-module: {{ noobaa_app }}-server
+        noobaa-s3: "true"
+        noobaa-mgmt: "true"
+    spec:
+      containers:
+        - name: noobaa-server
+          readinessProbe:
+            tcpSocket:
+              port: 6001
+            timeoutSeconds: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          image: noobaa/noobaa-core:3.0.0
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+            - containerPort: 8080
+            - containerPort: 8443
+            - containerPort: 8444
+            - containerPort: 8445
+            - containerPort: 8446
+            - containerPort: 60100
+          volumeMounts:
+            - mountPath: /data
+              name: datadir
+            - mountPath: /log
+              name: logdir
+          env:
+            - name: CONTAINER_PLATFORM
+              value: KUBERNETES
+            - name: CREATE_SYS_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ noobaa_secret_name }}
+                  key: name
+                  optional: true
+            - name: CREATE_SYS_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ noobaa_secret_name }}
+                  key: email
+                  optional: true
+            - name: CREATE_SYS_PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ noobaa_secret_name }}
+                  key: password
+                  optional: true
+      serviceAccountName: {{ noobaa_serviceaccount }}
+  volumeClaimTemplates:
+  - metadata:
+      name: logdir
+      labels:
+        app: {{ noobaa_app }}
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: {{ noobaa_pv_logdir_size }}
+  - metadata:
+      name: datadir
+      labels:
+        app: {{ noobaa_app }}
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: {{ noobaa_pv_datadir_size }}

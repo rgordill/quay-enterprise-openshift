@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ noobaa_ingress }}
+  namespace: {{ noobaa_namespace }}
+  labels:
+    app: {{ noobaa_app }}  
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/secure-backends: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+spec:
+  tls:
+  - hosts: 
+    - nooba.{{ subdomain }}
+  rules:
+  - host: nooba.{{ subdomain }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ noobaa_service }}
+          servicePort: 8443

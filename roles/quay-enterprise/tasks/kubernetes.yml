@@ -1,0 +1,9 @@
+- name: Set Namespace
+  set_fact:
+    namespace_object: Namespace
+  when: kubernetes | bool
+
+- name: Set Project
+  set_fact:
+    namespace_object: Project
+  when: not kubernetes | bool

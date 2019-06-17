@@ -1,0 +1,7 @@
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: {{ noobaa_serviceaccount }}
+  namespace: {{ noobaa_namespace }}
+  labels:
+    app: {{ noobaa_app }}

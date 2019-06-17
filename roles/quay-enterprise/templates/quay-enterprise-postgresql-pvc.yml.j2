@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: "{{ quay_enterprise_postgres_claim_name }}"
+  name: "{{ quay_enterprise_postgresql_claim_name }}"
   namespace: "{{ quay_enterprise_namespace }}"
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
-      storage: "{{ quay_enterprise_postgres_claim_size }}"
+      storage: "{{ quay_enterprise_postgresql_claim_size }}"

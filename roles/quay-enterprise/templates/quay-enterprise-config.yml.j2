@@ -2,33 +2,36 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   namespace: "{{ quay_enterprise_namespace }}"
-  name: "{{ quay_enterprise_app_component }}"
+  name: "{{ quay_enterprise_config_component }}"
   labels:
     app: quay-enterprise
-    quay-enterprise-component: "{{ quay_enterprise_app_component }}"
+    quay-enterprise-component: "{{ quay_enterprise_config_component }}"
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: quay-enterprise
-      quay-enterprise-component: "{{ quay_enterprise_app_component }}"
+      quay-enterprise-component: "{{ quay_enterprise_config_component }}"
   template:
     metadata:
       namespace: "{{ quay_enterprise_namespace }}"
       labels:
         app: quay-enterprise
-        quay-enterprise-component: "{{ quay_enterprise_app_component }}"
+        quay-enterprise-component: "{{ quay_enterprise_config_component }}"
     spec:
       volumes:
       - name: configsecret
         secret:
           secretName: "{{ quay_enterprise_app_config_secret }}"
-      - name: datastorage
-        persistentVolumeClaim:
-          claimName: "{{ quay_enterprise_app_claim_name }}"
+      - name: quay-tls
+        secret:
+          secretName: "{{ quay_enterprise_app_cert_secret_name }}"
       containers:
-      - name: "{{ quay_enterprise_app_component }}"
+      - name: "{{ quay_enterprise_config_component }}"
         image: "{{ quay_enterprise_app_image }}"
+        args:
+        - config
+        - password
         env:
         - name: QE_K8S_NAMESPACE
           value: "{{ quay_enterprise_namespace }}"
@@ -39,10 +42,10 @@ spec:
           protocol: TCP
         volumeMounts:
         - name: configsecret
-          mountPath: /conf/stack
-        - name: datastorage
-          mountPath: /datastorage          
+          mountPath: /conf/stack          
+        - name: quay-tls
+          mountPath: /quay-tls
       imagePullSecrets:
         - name: redhat-quay-pull-secret
-      serviceAccount: "{{ quay_enterprise_serviceaccount }}"
-      serviceAccountName: "{{ quay_enterprise_serviceaccount }}"
+      serviceAccount: quay-enterprise-sa
+      serviceAccountName: quay-enterprise-sa

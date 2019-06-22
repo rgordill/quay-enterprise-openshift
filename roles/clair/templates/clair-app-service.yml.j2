@@ -6,8 +6,6 @@ metadata:
   label:
     app: clair
     clairComponent: "{{ clair_app_component }}"
-  annotations:
-    service.alpha.openshift.io/serving-cert-secret-name: "{{ clair_app_cert }}"
 spec:
   type: ClusterIP
   ports:

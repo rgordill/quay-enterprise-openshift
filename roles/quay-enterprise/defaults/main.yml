@@ -25,11 +25,13 @@ quay_enterprise_postgresql_claim_size: 1Gi
 quay_enterprise_redis_component: quay-enterprise-redis
 quay_enterprise_redis_service: quay-enterprise-redis
 quay_enterprise_redis_image: registry.access.redhat.com/rhscl/redis-32-rhel7:latest
-#quay_enterprise_redis_image: quay.io/quay/redis:latest
 
 quay_enterprise_app_component: quay-enterprise-app
 quay_enterprise_app_service: quay-enterprise
-quay_enterprise_app_image: quay.io/redhat/quay:v3.0.2
+quay_enterprise_app_image: quay.io/redhat/quay:v3.0.3
+quay_enterprise_config_component: quay-enterprise-config
+quay_enterprise_config_service: quay-config
+
 
 quay_enterprise_app_cert_secret_name: quay-tls
 quay_enterprise_app_config_secret: quay-enterprise-config-secret
@@ -37,6 +39,5 @@ quay_enterprise_app_config_secret: quay-enterprise-config-secret
 quay_enterprise_app_claim_name: quay-datastorage
 quay_enterprise_app_claim_size: 5Gi
 
-#quay_enterprise_ca_cn: "Quay Enterprise CA"
-#quay_enterprise_server_cn: "Quay Enterprise Server"
+quay_enterprise_ca_cn: "Quay Enterprise CA"
 

@@ -1,11 +1,11 @@
 galaxy_info:
   author: Ramon Gordillo
   description: Sample Role to deploy Clair image inspection on OCP
-  company: Red Hat
+  company: 
 
   license: GPLv3
 
-  min_ansible_version: 2.5
+  min_ansible_version: 2.8
 
   galaxy_tags: [clair,quay,openshift]
 

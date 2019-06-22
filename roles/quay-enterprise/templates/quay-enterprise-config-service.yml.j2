@@ -2,10 +2,11 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: "{{ quay_enterprise_namespace }}"
-  name: "{{ quay_enterprise_app_service }}"
+  name: "{{ quay_enterprise_config_service }}"
   labels:
     app: quay-enterprise
-    quay-enterprise-component: "{{ quay_enterprise_app_component }}"
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: "{{ quay_enterprise_app_cert_secret_name }}"
 spec:
   type: ClusterIP
   ports:
@@ -17,9 +18,5 @@ spec:
       port: 443
       targetPort: 8443
       name: https
-    - protocol: TCP
-      port: 9092
-      targetPort: 9092
-      name: prometheus
   selector:
-    quay-enterprise-component: "{{ quay_enterprise_app_component }}"
+    quay-enterprise-component: "{{ quay_enterprise_config_component }}"

@@ -2,8 +2,8 @@
 # tasks file for clair
 
 # Not needed as we deploy if quay has already done it
-- name: Add SCC anyuid to default account
-  shell: "oc adm policy add-scc-to-user anyuid -z default -n {{ clair_namespace }}"
+# - name: Add SCC anyuid to default account
+#   shell: "oc adm policy add-scc-to-user anyuid -z default -n {{ clair_namespace }}"
 
 - name: Create Clair Postgres
   openshift_raw:
@@ -17,6 +17,7 @@
   openshift_raw:
     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
   with_items:
+  - clair-app-secret.yml.j2
   - clair-app-cm.yml.j2
-  - clair-app-deployment.yml.j2
   - clair-app-service.yml.j2
+  - clair-app-deployment.yml.j2

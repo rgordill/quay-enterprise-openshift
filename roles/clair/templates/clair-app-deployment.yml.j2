@@ -4,7 +4,7 @@ metadata:
   labels:
     app: clair
     clairComponent: "{{ clair_app_component }}"
-  name: clair
+  name: "{{ clair_app_component }}"
   namespace: "{{ clair_namespace }}"
 spec:
   replicas: 1
@@ -22,9 +22,13 @@ spec:
       - name: clair-config
         configMap:
           name: "{{ clair_app_configmap  }}"
-      - name: jwt-secret
+      - name: "{{ clair_app_secret }}"
         secret:
-          secretName: "{{ clair_app_cert }}"
+          secretName: "{{ clair_app_secret }}"
+      imagePullSecrets:
+      - name: redhat-quay-pull-secret
+      serviceAccount: quay-enterprise-sa 
+      serviceAccountName: quay-enterprise-sa
       containers:
       - name: clair
         image: "{{ clair_app_image }}"
@@ -46,8 +50,8 @@ spec:
             port: 6061
         volumeMounts:
         - name: clair-config
-          mountPath: /config
-        - name: jwt-secret
+          mountPath: /clair/config
+        - name: "{{ clair_app_secret }}"
           mountPath: /secret
         resources:
           limits:

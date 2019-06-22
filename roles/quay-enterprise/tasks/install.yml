@@ -1,13 +1,12 @@
 ---
 # tasks file for Quay Enterprise
 
-# Create Project/Namespace
-- name: Create Quay Enterprise project
-  k8s:
-    api_version: v1
-    kind: "{{ namespace_object }}"
-    name: "{{ quay_enterprise_namespace }}"
-    state: present
+# - name: Create Quay Enterprise project
+#   k8s:
+#     api_version: v1
+#     kind: "{{ namespace_object }}"
+#     name: "{{ quay_enterprise_namespace }}"
+#     state: present
 
 # - name: Create Service Account
 #   shell: "oc create serviceaccount quay-enterprise-sa -n {{ quay_enterprise_namespace }}"
@@ -17,120 +16,179 @@
 #   shell: "oc adm policy add-scc-to-user anyuid -z quay-enterprise-sa -n {{ quay_enterprise_namespace }}"
 #   when: not kubernetes | bool
 
-# Create Objects
+
 # - name: Create Quay postgresql objects
 #   k8s:
 #     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
 #   with_items:
 #   - quay-enterprise-postgresql-pvc.yml.j2
-#   - quay-enterprise-postgresql-service.yml.j2
-#   - quay-enterprise-postgresql.yml.j2
+#   # - quay-enterprise-postgresql-service.yml.j2
+# #   - quay-enterprise-postgresql.yml.j2
 
-- name: Check if PostgreSQL is up
+# - name: Check if PostgreSQL is up
+#   k8s_facts:
+#     kind: Pod
+#     namespace: "{{ quay_enterprise_namespace }}"
+#     label_selectors:
+#       - "quay-enterprise-component={{ quay_enterprise_postgresql_component }}"
+#     field_selectors:
+#       - "status.phase=Running"
+#   register: postgresql_pod
+#   until:
+#    - postgresql_pod.resources|length > 0
+#    - postgresql_pod.resources[0].status.containerStatuses[0].ready == true
+#   retries: 30
+#   delay: 5
+
+# - name: Set PostgreSQL pod
+#   set_fact:
+#     psql_container: "{{ postgresql_pod.resources[0] }}"
+
+# - name: "PostgreSQL - pg_trgm"
+#   shell: >
+#     oc exec {{ psql_container.metadata.name }} -n {{ quay_enterprise_namespace }} -c postgres --
+#     /bin/bash -c "echo 'CREATE EXTENSION IF NOT EXISTS pg_trgm' | /opt/rh/rh-postgresql96/root/usr/bin/psql -d {{ quay_enterprise_postgresql_database }}"
+
+# - name: "PostgreSQL - grant admin to user"
+#   shell: >
+#     oc exec {{ psql_container.metadata.name }} -n {{ quay_enterprise_namespace }} -c postgres --
+#     /bin/bash -c "echo 'ALTER USER quay WITH SUPERUSER;' | /opt/rh/rh-postgresql96/root/usr/bin/psql -d {{ quay_enterprise_postgresql_database }}"
+
+# - name: Create Quay Enterprise Redis objects
+#   k8s:
+#     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+#   with_items:
+#   - quay-enterprise-redis.yml.j2
+#   - quay-enterprise-redis-service.yml.j2
+
+# - name: Create Quay Enterprise App pull credentials
+#   k8s:
+#     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+#   with_items:
+#   - quay-enterprise-app-secret-pull.yml.j2
+
+# - name: Create Quay Enterprise Service
+#   k8s:
+#     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+#   with_items:
+#    - quay-enterprise-app-pvc.yml.j2
+#    - quay-enterprise-app-role.yml.j2
+#    - quay-enterprise-app-rolebinding.yml.j2
+#    - quay-enterprise-app-service.yml.j2
+#    - quay-enterprise-config-service.yml.j2
+
+# - name: Create Quay Enterprise kubernetes ingress
+#   k8s:
+#     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+#   with_items:
+#   - quay-enterprise-app-ingress.yml.j2
+#   when: kubernetes | bool
+
+# - name: Create Quay Enterprise openshift route
+#   k8s:
+#     definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+#   with_items:
+#     - quay-enterprise-app-route.yml.j2
+#    - quay-enterprise-config-route.yml.j2
+#   when: not kubernetes | bool
+
+# - name: Get App route name
+#   k8s_facts:
+#     kind: Route
+#     name: quay-enterprise
+#     namespace: "{{ quay_enterprise_namespace }}"
+#   register: app_route
+
+- name: Set route host
+  set_fact:
+#    ingress_host: "{{ app_route.resources[0].spec.host }}"
+    ingress_host: "quay-enterprise-quay-enterprise.apps.labmad.redhat.com"
+
+- name: Check if certs exists, if so, keep them
   k8s_facts:
-    kind: Pod
+    kind: Secret
     namespace: "{{ quay_enterprise_namespace }}"
-    label_selectors:
-      - "quay-enterprise-component={{ quay_enterprise_app_component }}"
-    field_selectors:
-      - "status.phase=Running"
-  register: postgresql_pod
-  until:
-   "(postgresql_pod| length > 0) and (postgresql_pod.resources[0].status.containerStatuses[0].ready == true)"
-  retries: 30
-  delay: 5
+    name: "{{ quay_enterprise_app_config_secret }}"
+  register: quay_app_config_secret
+
+- name: Keep old SSL certs
+  block:
+
+  - name: Set server key content
+    set_fact:
+      server_key: "{{ quay_app_config_secret.resources[0].data['ssl.key'] }}"
+
+  - name: Set server certificate content
+    set_fact:
+      server_crt: "{{ quay_app_config_secret.resources[0].data['ssl.cert'] }}"
+  
+  when: quay_app_config_secret.resources | length > 0
+
+- name: Create fresh SSL certs 
+  block:
+
+  - name: Create temp folder
+    tempfile:
+      state: directory
+      suffix: ".cert"
+    register: tmp_folder_cert
+
+  - name: Create CA private key and cert
+    shell: >
+      openssl req -x509 -nodes -keyout "{{ tmp_folder_cert.path }}/ca.key" 
+      -out "{{ tmp_folder_cert.path }}/ca.crt" -newkey rsa:2048 -days 3650 
+      -subj "/CN={{ quay_enterprise_ca_cn }}"
+
+  - name: Set server CA Certificate content
+    set_fact:
+      server_ca: "{{ lookup('file', tmp_folder_cert.path + '/ca.crt') }}"
+
+  - name: Create an OpenSSL server private key
+    shell: openssl genrsa -out "{{ tmp_folder_cert.path }}/server.key" 2048
+
+  - name: Create server OpenSSL csr
+    shell: >
+      openssl req -new -keyout "{{ tmp_folder_cert.path }}/server.key" -nodes
+      -out "{{ tmp_folder_cert.path }}/server.csr" -subj "/CN={{ quay_enterprise_app_service }}.{{ quay_enterprise_namespace }}.svc"
+
+# openssl certificate includes "ownca" but cannot add an alt_name on that provider
+# See https://docs.ansible.com/ansible/2.8/modules/openssl_certificate_module.html
+  - name: Save cert extensions
+    template:
+      src: x509_extensions.j2
+      dest: "{{ tmp_folder_cert.path }}/x509_extensions_server"
+    vars:
+      is_ca: false
+      subject_alt_name:
+      - "{{ quay_enterprise_app_service }}.{{ quay_enterprise_namespace }}.svc"
+      - "{{ ingress_host }}"
+
+# openssl ansible modules does not provide CA signing yet, meant for 2.6
+  - name: Generate a Server cert
+    shell: >
+      openssl x509 -req -in "{{ tmp_folder_cert.path }}/server.csr"
+      -CA "{{ tmp_folder_cert.path }}/ca.crt" -CAkey "{{ tmp_folder_cert.path }}/ca.key"
+      -CAcreateserial -out "{{ tmp_folder_cert.path }}/server.crt" 
+      -extfile "{{ tmp_folder_cert.path }}/x509_extensions_server" -extensions custom_extensions      
+
+  - name: Set server key content
+    set_fact:
+      server_key: "{{ lookup('file', tmp_folder_cert.path + '/server.key') }}"
+
+  - name: Set server certificate content
+    set_fact:
+      server_crt: "{{ lookup('file', tmp_folder_cert.path + '/server.crt') }}"
+
+  when: quay_app_config_secret.resources | length == 0
+
+- name: Create Other Quay Enterprise Objects
+  k8s:
+    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
+  with_items:
+  - quay-enterprise-app-secret.yml.j2
+#   - quay-enterprise-app.yml.j2
+#   - quay-enterprise-config.yml.j2
 
 - name: exit now
   fail: msg="I don't need anymore"
 
-- name: Create Quay Enterprise Redis objects
-  k8s:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-redis.yml.j2
-  - quay-enterprise-redis-service.yml.j2
-
-- name: Create Quay Enterprise App pull credentials
-  k8s:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-app-secret-pull.yml.j2
-
-- name: Create Quay Enterprise App Objects
-  k8s:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-app-role.yml.j2
-  - quay-enterprise-app-rolebinding.yml.j2
-  - quay-enterprise-app-service.yml.j2
-  - quay-enterprise-app-secret.yml.j2
-  - quay-enterprise-app-pvc.yml.j2
-
-- name: Create Quay Enterprise App Deployment
-  k8s:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-app.yml.j2
-
-- name: Create Quay Enterprise kubernetes ingress
-  k8s:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-app-ingress.yml.j2
-  when: kubernetes | bool
-
-- name: Create Quay Enterprise openshift route
-  k8s:
-    definition: "{{ lookup('template', '' + item ) | from_yaml }}"
-  with_items:
-  - quay-enterprise-app-route.yml.j2
-  when: not kubernetes | bool
-
-
-# - name: Create Quay Enterprise Secret
-#   openshift_raw:
-#     src: "{{ role_path }}/files/quay-enterprise-config-secret.yml.j2"
- 
-
-#  - name: Add SSL certs 
-#   block:
-
-#   - name: Create temp folder
-#     tempfile:
-#       state: directory
-#       suffix: ".cert"
-#     register: tmp_folder_cert
-
-#   - name: Create CA private key and cert
-#     shell: >
-#       openssl req -x509 -nodes -keyout "{{ tmp_folder_cert.path }}/ca.key" 
-#       -out "{{ tmp_folder_cert.path }}/ca.crt" -newkey rsa:2048 -days 3650 
-#       -subj "/CN={{ quay_enterprise_ca_cn }}"
-
-#   - name: Create an OpenSSL server private key
-#     shell: openssl genrsa -out "{{ tmp_folder_cert.path }}/server.key" 4096
-
-
-#   - name: Create server OpenSSL csr
-#     shell: >
-#       openssl req -new -keyout "{{ tmp_folder_cert.path }}/server.key" -nodes
-#       -out "{{ tmp_folder_cert.path }}/server.csr" -subj "/CN={{ quay_enterprise_server_cn }}"
-
-# # openssl ansible modules does not provide CA signing yet, meant for 2.6
-#   - name: Save cert extensions
-#     template:
-#       src: x509_extensions.j2
-#       dest: "{{ tmp_folder_cert.path }}/x509_extensions_server"
-#     vars:
-#       is_ca: false
-#       subject_alt_name:
-#       - "{{ quay_svc.service.metadata.name }}.{{ quay_svc.service.metadata.namespace }}.svc"
-#       - "{{ quay_route.route.spec.host }}"
-
-# # openssl ansible modules does not provide CA signing yet, meant for 2.6
-#   - name: Generate a Server cert
-#     shell: >
-#       openssl x509 -req -in "{{ tmp_folder_cert.path }}/server.csr"
-#       -CA "{{ tmp_folder_cert.path }}/ca.crt" -CAkey "{{ tmp_folder_cert.path }}/ca.key"
-#       -CAcreateserial -out "{{ tmp_folder_cert.path }}/server.crt" 
-#       -extfile "{{ tmp_folder_cert.path }}/x509_extensions_server" -extensions custom_extensions      
